@@ -19,9 +19,6 @@ function err = Do_SVM_Classifier( db, train_set, test_set, C, gamma, is_linear )
 
     X_train = db.features(:, ind_features_train);
     Y_train = feature_class;
-
-    size(X_train)
-    size(Y_train)
     
     if is_linear
         params = ['-q -c ' num2str(C) ' -t 0']; %Linear kernel, Ignore gamma

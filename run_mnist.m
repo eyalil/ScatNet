@@ -1,5 +1,9 @@
 function [train_err test_err] = run_mnist(filter_count)
 
+	%train_err = [0 0 0 0 0];
+	%test_err = [0 0 0 0 0];
+	%return;
+
     N_train_possibilities = [30, 100, 200, 500, 1000]; %[30, 100, 200, 500, 1000, 2000, 4000, 99999];
     train_err = zeros(1, length(N_train_possibilities));
     test_err = zeros(1, length(N_train_possibilities));
@@ -149,6 +153,8 @@ function [train_err test_err] = run_mnist(filter_count)
             
         elseif strcmp(classifier, 'LinearSVM')
             
+		fprintf('N_train is %d...\n', N_train);
+
             C_options = 2 .^ (0:2:10);
             [best_C, ~, best_perf] = CV_SVM_Classifier(db, N_train, C_options, [], 5, 1);
             
@@ -174,7 +180,7 @@ function [train_err test_err] = run_mnist(filter_count)
     
     %% Epilog
     fprintf('Final Accuracy:\n');
-    fprintf('N\ttrain\ttest\n');
+    fprintf('N\t\terr\n');
     
     for i = 1:length(N_train_possibilities)
         fprintf('%d\t%g%%\t%g%%\n', N_train_possibilities(i), train_err(i), test_err(i));
@@ -210,4 +216,3 @@ function Y = FeatureGen(x, Wop)
     Y = y0; %Do nothing for now. Note that Y is 3D.
     
 end
-

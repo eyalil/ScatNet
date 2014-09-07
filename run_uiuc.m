@@ -35,4 +35,3 @@ model = affine_train(db, train_set, train_opt);
 labels = affine_test(db, model, test_set);
 % compute the error
 error = classif_err(labels, test_set, src)
-

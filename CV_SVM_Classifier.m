@@ -13,9 +13,7 @@ function [best_C, best_gamma, best_perf] = CV_SVM_Classifier(db, N, C_options, g
     
     %Do cross validation over C and gamma
     global PARALLELISM;
-	if PARALLELISM > 0
-		matlabpool('open', PARALLELISM);
-	end
+    %matlabpool('open', PARALLELISM);
     
     error = zeros(nb_split, length(C_options)*length(gamma_options));
     %parfor i_split = 1:nb_split
@@ -39,9 +37,7 @@ function [best_C, best_gamma, best_perf] = CV_SVM_Classifier(db, N, C_options, g
         end
     end
     
-	if PARALLELISM > 0
-		matlabpool('close');
-	end
+    %matlabpool('close');
 
     %% averaged performance
     perf = 100*(1-mean(error));
