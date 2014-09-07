@@ -2,7 +2,9 @@ function [train_features test_features] = Eyal_CalculateFeatures(train_images, t
 
     
     global PARALLELISM;
-    matlabpool('open', PARALLELISM);
+	if PARALLELISM > 0
+		matlabpool('open', PARALLELISM);
+	end
 
     d_length = length(train_images);
     
@@ -25,8 +27,9 @@ function [train_features test_features] = Eyal_CalculateFeatures(train_images, t
             test_features{d}{i} = feature_gen(img);
         end
     end
-        
-    matlabpool('close');
+       
+	if PARALLELISM > 0
+		matlabpool('close');
+	end
     
 end
-

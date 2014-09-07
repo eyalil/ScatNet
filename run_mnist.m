@@ -9,7 +9,7 @@ function [train_err test_err] = run_mnist(filter_count)
     N_test = 99999999; %Number of samples to use for test (generally we just use all of them)
     
     global PARALLELISM;
-    PARALLELISM = 4;
+    PARALLELISM = 0;
     
     classifier = 'LinearSVM';
     
@@ -210,3 +210,4 @@ function Y = FeatureGen(x, Wop)
     Y = y0; %Do nothing for now. Note that Y is 3D.
     
 end
+

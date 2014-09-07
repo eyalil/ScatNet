@@ -4,8 +4,10 @@ addpath_scatnet;
 addpath '.\libsvm-compact-0.1\matlab\';
 
 global mpath;
-mpath = 'C:\Dataset\';
+mpath = '~/Dataset/';
 if ~exist(mpath, 'file')
-    mpath = 'D:\Dataset\';
+	mpath = 'C:\Dataset\';
+	if ~exist(mpath, 'file')
+		mpath = 'D:\Dataset\';
+	end
 end
-

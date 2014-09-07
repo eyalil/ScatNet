@@ -20,3 +20,4 @@ function run_mnist_times(filter_count, times)
     
     fprintf('\n');
 end
+

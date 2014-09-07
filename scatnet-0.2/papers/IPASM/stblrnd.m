@@ -124,4 +124,3 @@ function [err, commonSize, numElements] = genOutsize(nparams,varargin)
     end
 end
 
-

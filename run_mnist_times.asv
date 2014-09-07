@@ -1,0 +1,4 @@
+function run_mnist_times(times)
+    for
+    [train_err test_err] = run_mnist(filter_count);
+end

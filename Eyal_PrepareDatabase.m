@@ -86,4 +86,3 @@ function [ db, train_set, test_set ] = Eyal_PrepareDatabase( train, test, train_
     end
 
 end
-
