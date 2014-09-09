@@ -8,7 +8,7 @@ global mpath;
 mpath = 'C:\Dataset\';
 if ~exist(mpath, 'file')
     mpath = 'D:\Dataset\';
-    if ~exit(mpath, 'file')
+    if ~exist(mpath, 'file')
         mpath = '~/Dataset/';
     end
 end
