@@ -13,24 +13,40 @@ function [train_err test_err] = run_mnist(filter_count)
     N_test = 99999999; %Number of samples to use for test (generally we just use all of them)
     
     global PARALLELISM;
-    PARALLELISM = 0;
+    PARALLELISM = 4;
     
     classifier = 'LinearSVM';
     
     %Eyal: random?
     %filt_opt.filter_type = 'EyalRandom';
     %filt_opt.filter_type = 'OrderedRandom';
-    filt_opt.filter_type = 'UniformRandom';
-    %filt_opt.filter_type = 'morlet';
+    %filt_opt.filter_type = 'UniformRandom';
+    filt_opt.filter_type = 'morlet';
 
     %Define 'wavelet' transform
     filt_opt.J = 3 %Was: 3/5
     filt_opt.L = 8;
     
-    filt_opt.UniformRandom_Count = filter_count;
+    %UNCOMMENT!
+    %filt_opt.UniformRandom_Count = filter_count;
 
     scat_opt.M = 1; %Number of layers is set here
     scat_opt.oversampling = 0; %Was: 0
+    
+    
+    
+    
+    
+    %options = fill_struct(options, 'sigma_psi',  0.8);	
+    %options = fill_struct(options, 'xi_psi',  1/2*(2^(-1/Q)+1)*pi);	
+    %options = fill_struct(options, 'slant_psi',  4/L);	
+    
+    %filt_opt.sigma_psi = 0.2;
+    %filt_opt.xi_psi = 0.25*pi;
+    %filt_opt.slant_psi = 1;
+    
+    
+    
     
     
     %% Startup
@@ -120,7 +136,7 @@ function [train_err test_err] = run_mnist(filter_count)
             %   (The function must only use the first 10N_train instances!)
             [error, best_dim, best_model] = mnist_pca_classifier(db, N_train, 1:80, 5);
 
-            cur_train_err = min(mean(error));
+            cur_train_err = min(mean(error)); %??? Check this - not sure if ok
             fprintf('Min dim was %d. Train error is %g.\n', best_dim, cur_train_err);
 
             % testing
@@ -137,9 +153,7 @@ function [train_err test_err] = run_mnist(filter_count)
             gamma_options = 2 .^ (-14:2:0);
             C_options = 2 .^ (0:2:10); 
 
-            [best_C, best_gamma, best_perf] = CV_SVM_Classifier(db, N_train, C_options, gamma_options, 5, 0);
-
-            cur_train_err = 100-best_perf;
+            [best_C, best_gamma, ~] = CV_SVM_Classifier(db, N_train, C_options, gamma_options, 5, 0);
 
             %Cheating - using the best C and gamma to save time. Note this should be removed
             %later on.
@@ -148,6 +162,7 @@ function [train_err test_err] = run_mnist(filter_count)
 
             fprintf('Final C = %g; gamma = %g\n', best_C, best_gamma);
 
+            cur_train_err = Do_SVM_Classifier( db, train_set, train_set, best_C, best_gamma, 0);
             cur_test_err = Do_SVM_Classifier( db, train_set, test_set, best_C, best_gamma, 0);
             
             
@@ -156,12 +171,11 @@ function [train_err test_err] = run_mnist(filter_count)
 		fprintf('N_train is %d...\n', N_train);
 
             C_options = 2 .^ (0:2:10);
-            [best_C, ~, best_perf] = CV_SVM_Classifier(db, N_train, C_options, [], 5, 1);
-            
-            cur_train_err = 100-best_perf;
+            [best_C, ~, ~] = CV_SVM_Classifier(db, N_train, C_options, [], 5, 1);
             
             fprintf('Best C = %g\n', best_C);
             
+            cur_train_err = Do_SVM_Classifier( db, train_set, train_set, best_C, [], 1);
             cur_test_err = Do_SVM_Classifier( db, train_set, test_set, best_C, [], 1);
             
         end

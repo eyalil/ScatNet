@@ -29,9 +29,13 @@ function err = Do_SVM_Classifier( db, train_set, test_set, C, gamma, is_linear )
     X_test = db.features(:, ind_features_test);
 
     if is_linear
-        model = train(double(Y_train'), sparse(double(X_train')), params);
+        %model = train(double(Y_train'), sparse(double(X_train')), params);
+        %labels = predict(zeros(1, length(test_set))', sparse(double(X_test')), model);
         
-        labels = predict(zeros(1, length(test_set))', sparse(double(X_test')), model);
+        
+        model = svmtrain(double(Y_train'), double(X_train'), params);
+        labels = svmpredict(zeros(1, length(test_set))', double(X_test'), model);
+        
         
     else
         %Note that I use libsvm directly
