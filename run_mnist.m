@@ -1,54 +1,39 @@
 function [train_err test_err] = run_mnist(filter_count)
 
-	%train_err = [0 0 0 0 0];
-	%test_err = [0 0 0 0 0];
-	%return;
-
-    N_train_possibilities = [30, 100, 200, 500, 1000]; %[30, 100, 200, 500, 1000, 2000, 4000, 99999];
+    N_train_possibilities = [1000]; %[30, 100, 200, 500, 1000]; %[30, 100, 200, 500, 1000, 2000, 4000, 99999];
     train_err = zeros(1, length(N_train_possibilities));
     test_err = zeros(1, length(N_train_possibilities));
 
     %% Params
-    N_train = 1000; %Number of samples to use, PER DIGIT (so overall 10N samples are used)
-    N_test = 99999999; %Number of samples to use for test (generally we just use all of them)
+    N_train = 1000; %1000; %Number of samples to use, PER DIGIT (so overall 10N samples are used)
+    N_test = 100; %99999999; %Number of samples to use for test (generally we just use all of them)
     
     global PARALLELISM;
-    PARALLELISM = 4;
+    PARALLELISM = 2;
     
     classifier = 'LinearSVM';
     
-    %Eyal: random?
+	is_hebbian = 1; %Hebbian is a special case
+	
     %filt_opt.filter_type = 'EyalRandom';
     %filt_opt.filter_type = 'OrderedRandom';
     %filt_opt.filter_type = 'UniformRandom';
-    filt_opt.filter_type = 'morlet';
-
+    %filt_opt.filter_type = 'morlet';
+    
+    hebbian_sparsity = 0.5;
+    
     %Define 'wavelet' transform
     filt_opt.J = 3 %Was: 3/5
     filt_opt.L = 8;
     
-    %UNCOMMENT!
-    %filt_opt.UniformRandom_Count = filter_count;
+	if strcmp(filt_opt.filter_type, 'UniformRandom')
+		filt_opt.UniformRandom_Count = filter_count;
+	end
 
     scat_opt.M = 1; %Number of layers is set here
     scat_opt.oversampling = 0; %Was: 0
     
-    
-    
-    
-    
-    %options = fill_struct(options, 'sigma_psi',  0.8);	
-    %options = fill_struct(options, 'xi_psi',  1/2*(2^(-1/Q)+1)*pi);	
-    %options = fill_struct(options, 'slant_psi',  4/L);	
-    
-    %filt_opt.sigma_psi = 0.2;
-    %filt_opt.xi_psi = 0.25*pi;
-    %filt_opt.slant_psi = 1;
-    
-    
-    
-    
-    
+        
     %% Startup
     fprintf('Startup...\n');
     startup;
@@ -75,11 +60,14 @@ function [train_err test_err] = run_mnist(filter_count)
     %pix_avg = pix_sum / pix_count;
     %pix_std = sqrt((pix_sq_sum ./ pix_count ) - (pix_sum ./ pix_count) .^ 2);
     
+    train_length = 0;
+    
     for d = 1:10
         for i = 1:length(train{d})
             %train{d}{i} = (train{d}{i} - pix_avg) ./ pix_std;
             
             train{d}{i} = (train{d}{i} / 255)*2 - 1;
+            train_length = train_length + 1;
         end
         for i = 1:length(test{d})
             %test{d}{i} = (test{d}{i} - pix_avg) ./ pix_std;
@@ -88,28 +76,77 @@ function [train_err test_err] = run_mnist(filter_count)
         end
     end
 
+    
+    [distance_indices_before, class_centers] = CalcDistances(train);
+    class_count = size(class_centers, 2);
+    
+    if is_hebbian == 1
         
-    %% Create wavelet filters
-    fprintf('Creating wavelets...\n');
+        %Create transition matrix
+        W = zeros(32*32, 4*4*25);
+        pattern = rand([class_count, 4*4*25]);
+               
+        %TEMP
+        for t = 1:8*4*25
+            r = randi([1, class_count*4*4*25]);
+            pattern(r) = 0;
+        end
+        
+        for d = 1:class_count
+            S_m = class_centers(:, d);
+            
+            for j = 1:4*4*25
+                W(:,j) = W(:,j) + (S_m - 0.5) * (pattern(d,j) - hebbian_sparsity);
+            end
+        end
+        
+        W = W / class_count;
+        
 
-    Wop = wavelet_factory_2d([32, 32], filt_opt, scat_opt);
-    
-    %return
-    
-    
-    %% Calculate features
-    fprintf('Calculating features...\n');
+        %Calculate "features"
+        [X Y] = SamplesToMatrix( train );
+        X_features = W' * X;
+        
+        hebbianFeatures.X = X_features;
+        hebbianFeatures.Y = Y;
+        
+        
+        %Normalize somehow...?
+        
+        
+        distance_indices_after = CalcDistances(hebbianFeatures);
+        
+    else
+        %% Create wavelet filters
+        fprintf('Creating wavelets...\n');
 
-    %The first feature gen performs the scattering transform; the third does
-    %   nothing and leaves the original features
-    %feature_gen = @(x)(sum(sum(format_scat(scat(x, Wop)),2),3));
-    feature_gen = @(x) (FeatureGen(x, Wop));
-    %feature_gen = @(x) ( reshape(x, [size(x,1)*size(x,2) 1] ) ); %Leave x as it is, but flatten it first
+        if strcmp(filt_opt.filter_type, 'Hebbian')
+            Wop = wavelet_factory_2d([32, 32], filt_opt, scat_opt);
+        else
+            Wop = wavelet_factory_2d([32, 32], filt_opt, scat_opt);
+        end
 
+        %return
     
-    %Calculate features 
-    [train_features test_features] = Eyal_CalculateFeatures(train, test, feature_gen);
     
+        %% Calculate features
+        fprintf('Calculating features...\n');
+
+        %The first feature gen performs the scattering transform; the third does
+        %   nothing and leaves the original features
+        %feature_gen = @(x)(sum(sum(format_scat(scat(x, Wop)),2),3));
+        feature_gen = @(x) (FeatureGen(x, Wop));
+        %feature_gen = @(x) ( reshape(x, [size(x,1)*size(x,2) 1] ) ); %Leave x as it is, but flatten it first
+
+
+        %Calculate features 
+        [train_features test_features] = Eyal_CalculateFeatures(train, test, feature_gen);
+
+    end
+    
+    
+    
+
     for i = 1:length(N_train_possibilities)
         
         N_train = N_train_possibilities(i);
@@ -118,6 +155,9 @@ function [train_err test_err] = run_mnist(filter_count)
         %% Prepare Database
         fprintf('Normalize features...\n');
         [ train_features_norm, test_features_norm ] = Eyal_NormalizeFeatures(train_features, test_features, N_train, classifier);
+    
+        %Now calculate distance (of normalized features)
+        distance_indices_after = CalcDistances(train_features_norm);
     
         fprintf('Preparing database...\n');
         [ db, train_set, test_set ] = Eyal_PrepareDatabase( train, test, train_features_norm, test_features_norm, N_train );
