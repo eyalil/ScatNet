@@ -19,6 +19,7 @@ function [train_err test_err] = run_mnist(filter_count)
     %filt_opt.filter_type = 'OrderedRandom';
     %filt_opt.filter_type = 'UniformRandom';
     %filt_opt.filter_type = 'morlet';
+	filt_opt.filter_type = 'Hebbain';
     
     hebbian_sparsity = 0.5;
     
