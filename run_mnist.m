@@ -13,22 +13,22 @@ function [train_err test_err] = run_mnist(filter_count)
     N_test = 99999999; %Number of samples to use for test (generally we just use all of them)
     
     global PARALLELISM;
-    PARALLELISM = 4;
+    PARALLELISM = 0;
     
     classifier = 'LinearSVM';
     
     %Eyal: random?
     %filt_opt.filter_type = 'EyalRandom';
     %filt_opt.filter_type = 'OrderedRandom';
-    %filt_opt.filter_type = 'UniformRandom';
-    filt_opt.filter_type = 'morlet';
+    filt_opt.filter_type = 'UniformRandom';
+    %filt_opt.filter_type = 'morlet';
 
     %Define 'wavelet' transform
     filt_opt.J = 3 %Was: 3/5
     filt_opt.L = 8;
     
     %UNCOMMENT!
-    %filt_opt.UniformRandom_Count = filter_count;
+    filt_opt.UniformRandom_Count = filter_count;
 
     scat_opt.M = 1; %Number of layers is set here
     scat_opt.oversampling = 0; %Was: 0
