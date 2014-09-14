@@ -1,4 +1,5 @@
-f = str2num(getenv('filters'))
-N = str2num(getenv('times'))
+filter_type = genenv('filter_type')
+filter_count = str2double(getenv('filters'))
+times = str2double(getenv('times'))
 
-run_mnist_times(f,N)
+run_mnist_times(filter_type, filter_count,times)

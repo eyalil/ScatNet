@@ -1,4 +1,4 @@
-function run_mnist_times(filter_count, times)
+function run_mnist_times(filter_type, filter_count, times)
 
     %Change to mean more...
     N_train_possibilities = [30, 100, 200, 500, 1000];
@@ -6,9 +6,21 @@ function run_mnist_times(filter_count, times)
     train_err = zeros(times, length(N_train_possibilities));
     test_err  = zeros(times, length(N_train_possibilities));
     
+    dist_indices_before = zeros(times, 10);
+    dist_indices_after  = zeros(times, 10);
+    
     for i = 1:times
-        [train_err(i,:) test_err(i,:)] = run_mnist(filter_count);
+        [train_err(i,:), test_err(i,:), dist_indices_before(i,:), dist_indices_after(i,:)] = run_mnist(filter_type, filter_count);       
     end
+    
+    fprintf('Distance indices before: ');
+    fprintf('%g ', mean(distance_indices_before, 1));
+    fprintf('\n');
+    
+    fprintf('Distance indices after: ');
+    fprintf('%g ', mean(distance_indices_after, 1));
+    fprintf('\n');
+    
     
     fprintf('Overall Accuracy:\n');
     fprintf('N\ttrain mean\ttrain std\ttest mean\ttest std\n');

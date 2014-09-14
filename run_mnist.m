@@ -1,25 +1,25 @@
-function [train_err test_err] = run_mnist(filter_count)
+function [train_err, test_err, distance_indices_before, distance_indices_after] = run_mnist(filter_type, filter_count)
 
-    N_train_possibilities = [1000]; %[30, 100, 200, 500, 1000]; %[30, 100, 200, 500, 1000, 2000, 4000, 99999];
+    N_train_possibilities = [30, 100, 200, 500, 1000]; %[30, 100, 200, 500, 1000, 2000, 4000, 99999];
     train_err = zeros(1, length(N_train_possibilities));
     test_err = zeros(1, length(N_train_possibilities));
 
     %% Params
-    N_train = 1000; %1000; %Number of samples to use, PER DIGIT (so overall 10N samples are used)
-    N_test = 100; %99999999; %Number of samples to use for test (generally we just use all of them)
+    N_train = 1000; %Number of samples to use, PER DIGIT (so overall 10N samples are used)
+    N_test = 99999999; %Number of samples to use for test (generally we just use all of them)
     
     global PARALLELISM;
     PARALLELISM = 0;
     
     classifier = 'LinearSVM';
     
-	is_hebbian = 1; %Hebbian is a special case
-	
+    filt_opt.filter_type = filter_type;
+    
     %filt_opt.filter_type = 'EyalRandom';
     %filt_opt.filter_type = 'OrderedRandom';
     %filt_opt.filter_type = 'UniformRandom';
     %filt_opt.filter_type = 'morlet';
-	filt_opt.filter_type = 'Hebbain';
+	%filt_opt.filter_type = 'Hebbain';
     
     hebbian_sparsity = 0.5;
     
@@ -83,17 +83,18 @@ function [train_err test_err] = run_mnist(filter_count)
     [distance_indices_before, class_centers] = CalcDistances(train);
     class_count = size(class_centers, 2);
     
-    if is_hebbian == 1
+    %% Create wavelet filters / transition matrix
+    if strcmp(filt_opt.filter_type, 'Hebbian')
         
         %Create transition matrix
         W = zeros(32*32, 4*4*25);
         pattern = rand([class_count, 4*4*25]);
                
         %TEMP
-        for t = 1:8*4*25
-            r = randi([1, class_count*4*4*25]);
-            pattern(r) = 0;
-        end
+        %for t = 1:8*4*25
+        %    r = randi([1, class_count*4*4*25]);
+        %    pattern(r) = 0;
+        %end
         
         for d = 1:class_count
             S_m = class_centers(:, d);
@@ -104,48 +105,25 @@ function [train_err test_err] = run_mnist(filter_count)
         end
         
         W = W / class_count;
-        
 
-        %Calculate "features"
-        [X Y] = SamplesToMatrix( train );
-        X_features = W' * X;
-        
-        hebbianFeatures.X = X_features;
-        hebbianFeatures.Y = Y;
-        
-        
-        %Normalize somehow...?
-        
-        
-        distance_indices_after = CalcDistances(hebbianFeatures);
-        
+        %Feature generating function
+        feature_gen = @(x) reshape(W'*(x(:)), [4*4*25 1 1]);
+
     else
-        %% Create wavelet filters
+        
         fprintf('Creating wavelets...\n');
+        Wop = wavelet_factory_2d([32, 32], filt_opt, scat_opt);
 
-        if strcmp(filt_opt.filter_type, 'Hebbian')
-            Wop = wavelet_factory_2d([32, 32], filt_opt, scat_opt);
-        else
-            Wop = wavelet_factory_2d([32, 32], filt_opt, scat_opt);
-        end
-
-        %return
-    
-    
-        %% Calculate features
-        fprintf('Calculating features...\n');
-
-        %The first feature gen performs the scattering transform; the third does
-        %   nothing and leaves the original features
+        %Feature generating function
+        
         %feature_gen = @(x)(sum(sum(format_scat(scat(x, Wop)),2),3));
         feature_gen = @(x) (FeatureGen(x, Wop));
-        %feature_gen = @(x) ( reshape(x, [size(x,1)*size(x,2) 1] ) ); %Leave x as it is, but flatten it first
-
-
-        %Calculate features 
-        [train_features test_features] = Eyal_CalculateFeatures(train, test, feature_gen);
-
     end
+    
+    %% Calculate features
+    fprintf('Calculating features...\n');
+    
+    [train_features test_features] = Eyal_CalculateFeatures(train, test, feature_gen);
     
     
     
@@ -236,13 +214,21 @@ function [train_err test_err] = run_mnist(filter_count)
     end
     
     %% Epilog
+    fprintf('Distance indices before: ');
+    fprintf('%g ', distance_indices_before);
+    fprintf('\n');
+    
+    fprintf('Distance indices after: ');
+    fprintf('%g ', distance_indices_after);
+    fprintf('\n');
+    
     fprintf('Final Accuracy:\n');
     fprintf('N\t\terr\n');
     
     for i = 1:length(N_train_possibilities)
         fprintf('%d\t%g%%\t%g%%\n', N_train_possibilities(i), train_err(i), test_err(i));
     end
-    
+       
     fprintf('\n');
     
     

@@ -1,9 +1,8 @@
 function [ train_features_norm, test_features_norm ] = Eyal_NormalizeFeatures(train_features, test_features, N_train, normalization_method)        
 
-    dim_of_features = size(train_features{1}{1});
-    d1 = dim_of_features(1); %Number of coeffs
-    d2 = dim_of_features(2); %x/8 of orig image
-    d3 = dim_of_features(3); %y/8 of orig image
+    d1 = size(train_features{1}{1}, 1); %Number of coeffs
+    d2 = size(train_features{1}{1}, 2); %x/8 of orig image
+    d3 = size(train_features{1}{1}, 3); %y/8 of orig image
             
     %max_per_feature = zeros(dim_of_features);
     norm_per_coefficient = zeros([d1, 1]);
