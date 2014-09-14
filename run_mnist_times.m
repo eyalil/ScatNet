@@ -14,11 +14,11 @@ function run_mnist_times(filter_type, filter_count, times)
     end
     
     fprintf('Distance indices before: ');
-    fprintf('%g ', mean(distance_indices_before, 1));
+    fprintf('%g ', mean(dist_indices_before, 1));
     fprintf('\n');
     
     fprintf('Distance indices after: ');
-    fprintf('%g ', mean(distance_indices_after, 1));
+    fprintf('%g ', mean(dist_indices_after, 1));
     fprintf('\n');
     
     
