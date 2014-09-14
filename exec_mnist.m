@@ -1,4 +1,4 @@
-filter_type = genenv('filter_type')
+filter_type = getenv('filter_type')
 filter_count = str2double(getenv('filters'))
 times = str2double(getenv('times'))
 
