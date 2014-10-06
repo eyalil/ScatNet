@@ -38,8 +38,7 @@ function [Wop, filters] = wavelet_factory_2d(size_in, filt_opt, scat_opt)
     end
     
     white_list_filt = {'filter_type', 'precision', 'Q', 'J', 'L',...
-        'sigma_phi','sigma_psi','xi_psi','slant_psi', 'min_margin',...
-        'HebbianSparsity', 'HebbianClusterCenters'};
+        'sigma_phi','sigma_psi','xi_psi','slant_psi', 'min_margin'};
     white_list_scat = { 'oversampling', 'precision','M'};
     
     %check_options_white_list(filt_opt, white_list_filt);
@@ -72,10 +71,10 @@ function [Wop, filters] = wavelet_factory_2d(size_in, filt_opt, scat_opt)
         case 'UniformRandom'
             filt_opt = rmfield(filt_opt, 'filter_type');
             filters = random_uniform_filter_bank_2d(size_in, filt_opt);   
-            
-        case 'Hebbian'
+
+        case 'PCA'
             filt_opt = rmfield(filt_opt, 'filter_type');
-            filters = hebbian_filter_bank_2d(size_in, filt_opt);  
+            filters = pca_filter_bank_2d(size_in, filt_opt);   
             
         otherwise
             error('unsupported filter type');

@@ -1,8 +1,6 @@
-function [best_C, best_gamma, best_perf] = CV_SVM_Classifier(db, N, C_options, gamma_options, nb_split, is_linear)
+function [best_C, best_gamma, best_perf] = CV_SVM_Classifier(db, N, C_options, gamma_options, nb_split, is_linear, num_of_train_images)
 
-    n_images = 10*N; %Use only the first 10N instances, the rest are part of the real 'test_set'
-
-    rng(1); % set the random split generator of matlab to have reproducible results  
+    %rng(1); % set the random split generator of matlab to have reproducible results  
 
     if is_linear
         assert(isempty(gamma_options));
@@ -26,9 +24,9 @@ function [best_C, best_gamma, best_perf] = CV_SVM_Classifier(db, N, C_options, g
             
             [train_set, test_set] = create_partition(db.src, 0.5);
             
-            %Do not allow images other than the first n_images
-            train_set = train_set(train_set <= n_images);
-            test_set  = test_set(test_set <= n_images);
+            %Do not allow images other than the train images
+            train_set = train_set(train_set <= num_of_train_images);
+            test_set  = test_set(test_set <= num_of_train_images);
             
             fprintf('Eyal: Train set size is %d; Test set size is %d\n', length(train_set), length(test_set));
             

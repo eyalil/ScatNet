@@ -1,5 +1,10 @@
 function [error, best_C, best_gamma] = Train_SVM_Classifier(db, N, C_options, gamma_options, nb_split)
 
+    error
+    error
+    error
+    This is old, do not run this file (for the very least, 10 should not be used...)
+
     n_images = 10*N; %Use only the first 10N instances, the rest are part of the real 'test_set'
 
     rng(1); % set the random split generator of matlab to have reproducible results  

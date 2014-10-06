@@ -1,5 +1,7 @@
 function [ train_features_norm, test_features_norm ] = Eyal_NormalizeFeatures(train_features, test_features, N_train, normalization_method)        
 
+    class_count = length(train_features);
+
     d1 = size(train_features{1}{1}, 1); %Number of coeffs
     d2 = size(train_features{1}{1}, 2); %x/8 of orig image
     d3 = size(train_features{1}{1}, 3); %y/8 of orig image
@@ -8,7 +10,7 @@ function [ train_features_norm, test_features_norm ] = Eyal_NormalizeFeatures(tr
     norm_per_coefficient = zeros([d1, 1]);
 
     %Find norm per scattering coefficient
-    for d = 1:10
+    for d = 1:class_count
         max_train = length(train_features{d});
         for i = 1:min(N_train, max_train)
             %max_per_feature = max(max_per_feature, abs(train_features{d}{i}));
@@ -30,10 +32,10 @@ function [ train_features_norm, test_features_norm ] = Eyal_NormalizeFeatures(tr
 
     %Renorm and flatten
     %(Perform DCT?)
-    train_features_norm = cell(1, 10);
-    test_features_norm  = cell(1, 10);
+    train_features_norm = cell(1, class_count);
+    test_features_norm  = cell(1, class_count);
     
-    for d = 1:10
+    for d = 1:class_count
         max_train = length(train_features{d});
         N_test_d  = length(test_features{d});
         for i = 1:min(N_train, max_train)

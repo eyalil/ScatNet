@@ -1,8 +1,6 @@
-function [error, best_dim, best_model] = mnist_pca_classifier(db, N, grid_train, nb_split)
+function [error, best_dim, best_model] = mnist_pca_classifier(db, N, grid_train, nb_split, num_of_train_images)
 
-    n_images = 10*N; %Use only the first 10N instances, the rest are part of the real 'test_set'
-
-    rng(1); % set the random split generator of matlab to 
+    %rng(1); % set the random split generator of matlab to 
     % have reproducible results  
 
     for i_split = 1:nb_split
@@ -11,8 +9,8 @@ function [error, best_dim, best_model] = mnist_pca_classifier(db, N, grid_train,
             [train_set, test_set] = create_partition(db.src, 0.5);
             
             %Do not allow images other than the first n_images
-            train_set = train_set(train_set <= n_images);
-            test_set  = test_set(test_set <= n_images);
+            train_set = train_set(train_set <= num_of_train_images);
+            test_set  = test_set(test_set <= num_of_train_images);
             
             train_opt.dim = cur_dim;
             model = affine_train(db, train_set, train_opt);
@@ -46,7 +44,7 @@ function [error, best_dim, best_model] = mnist_pca_classifier(db, N, grid_train,
     
     best_dim = grid_train(best_i);
     train_opt.dim = best_dim;
-    train_set = 1:n_images; %All real 'train images'
+    train_set = 1:num_of_train_images; %All real 'train images'
     best_model = affine_train(db, train_set, train_opt);
     
 end
